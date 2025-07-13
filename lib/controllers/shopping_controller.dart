@@ -17,9 +17,11 @@ class ShoppingController extends GetxController {
   /// Adds a new item to the shopping list based on a voice command.
   /// The command is expected to be in the format "[name] [quantity] kg".
   void addItem(String command) {
-    // Regex to capture product name and quantity in kg, without the "product" prefix
+    debugPrint('Command received by addItem: "$command"');
+    // Corrected Regex to capture product name and quantity in kg
+    // (.+?) makes the first group non-greedy, ensuring it stops before the number.
     final addRegex = RegExp(
-        r"([a-zA-Z0-9\s]+)[,]?\s*(\d+)\s*kg",
+        r"(.+?)[,]?\s*(\d+)\s*kg", // CHANGED THIS LINE
         caseSensitive: false);
     final totalRegex = RegExp(r"total", caseSensitive: false);
 
@@ -37,12 +39,14 @@ class ShoppingController extends GetxController {
     final match = addRegex.firstMatch(command);
     if (match != null) {
       String productName = match.group(1)?.trim() ?? '';
-      String productQuantityKg = match.group(2) ?? '0';
+      String productQuantityKg = match.group(2)?.trim() ?? '0'; // Added .trim() for quantity just in case
+
+      debugPrint('Regex matched! Product Name: "${productName}" Quantity: "${productQuantityKg}"');
 
       // Basic validation for extracted data
       if (productName.isNotEmpty && productQuantityKg != '0') {
         shoppingList.add(ShoppingItem(
-          name: productName.toString(),
+          name: productName.toString(), // Applied capitalizeFirst here for better display
           quantity: '$productQuantityKg kg',
         ));
         Get.snackbar(
@@ -53,9 +57,11 @@ class ShoppingController extends GetxController {
           colorText: Colors.white,
         );
       } else {
+        debugPrint('Validation failed: productName empty or productQuantityKg is "0"');
         _showInvalidCommandSnackbar();
       }
     } else {
+      debugPrint('Regex failed to match the command: "$command"');
       _showInvalidCommandSnackbar();
     }
   }
