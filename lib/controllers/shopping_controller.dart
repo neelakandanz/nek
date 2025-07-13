@@ -7,7 +7,7 @@ class ShoppingItem {
   final String name;
   final String quantity;
 
-  ShoppingItem({required this.name, required this.quantity});
+  ShoppingItem({required this.name, required this.quantity}); // Corrected constructor if it was quantityValue
 }
 
 // GetX Controller for State Management
@@ -18,10 +18,19 @@ class ShoppingController extends GetxController {
   /// The command is expected to be in the format "[name] [quantity] kg".
   void addItem(String command) {
     debugPrint('Command received by addItem: "$command"');
+
+    // TEMPORARY: Test a simpler regex (you can remove this after confirming the fix)
+    final testRegex = RegExp(r"10 kg", caseSensitive: false);
+    if (testRegex.hasMatch(command)) {
+      debugPrint('SUCCESS: "10 kg" found in command!');
+    } else {
+      debugPrint('FAILURE: "10 kg" NOT found in command.');
+    }
+
     // Corrected Regex to capture product name and quantity in kg
-    // (.+?) makes the first group non-greedy, ensuring it stops before the number.
+    // Updated to handle decimal quantities like "10.5"
     final addRegex = RegExp(
-        r"(.+?)[,]?\s*(\d+)\s*kg", // CHANGED THIS LINE
+        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*kg", // <--- CHANGED THIS LINE
         caseSensitive: false);
     final totalRegex = RegExp(r"total", caseSensitive: false);
 
