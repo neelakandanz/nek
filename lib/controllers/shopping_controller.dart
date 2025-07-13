@@ -7,7 +7,7 @@ class ShoppingItem {
   final String name;
   final String quantity;
 
-  ShoppingItem({required this.name, required this.quantity}); // Corrected constructor if it was quantityValue
+  ShoppingItem({required this.name, required this.quantity});
 }
 
 // GetX Controller for State Management
@@ -30,7 +30,7 @@ class ShoppingController extends GetxController {
     // Corrected Regex to capture product name and quantity in kg
     // Updated to handle decimal quantities like "10.5"
     final addRegex = RegExp(
-        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*kg", // <--- CHANGED THIS LINE
+        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*kg",
         caseSensitive: false);
     final totalRegex = RegExp(r"total", caseSensitive: false);
 
@@ -48,19 +48,19 @@ class ShoppingController extends GetxController {
     final match = addRegex.firstMatch(command);
     if (match != null) {
       String productName = match.group(1)?.trim() ?? '';
-      String productQuantityKg = match.group(2)?.trim() ?? '0'; // Added .trim() for quantity just in case
+      String productQuantityKg = match.group(2)?.trim() ?? '0';
 
       debugPrint('Regex matched! Product Name: "${productName}" Quantity: "${productQuantityKg}"');
 
       // Basic validation for extracted data
       if (productName.isNotEmpty && productQuantityKg != '0') {
         shoppingList.add(ShoppingItem(
-          name: productName.toString(), // Applied capitalizeFirst here for better display
+          name: productName.capitalize!, // Using GetX's .capitalize
           quantity: '$productQuantityKg kg',
         ));
         Get.snackbar(
           "Item Added",
-          "${productName.toString()} ($productQuantityKg kg) added to list.",
+          "${productName.capitalize!} ($productQuantityKg kg) added to list.", // Using GetX's .capitalize
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
@@ -101,10 +101,14 @@ class ShoppingController extends GetxController {
   }
 }
 
-// Extension to capitalize first letter (for better display)
+// REMOVED: Your custom StringExtension is removed to avoid ambiguity.
+// If you need custom string extensions in the future, consider renaming them
+// or using extension overrides explicitly.
+/*
 extension StringExtension on String {
   String capitalizeFirst() {
     if (isEmpty) return '';
     return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
+*/
