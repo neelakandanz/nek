@@ -27,10 +27,9 @@ class ShoppingController extends GetxController {
       debugPrint('FAILURE: "10 kg" NOT found in command.');
     }
 
-    // Corrected Regex to capture product name and quantity in kg
-    // Updated to handle decimal quantities like "10.5"
+    // Corrected Regex to capture product name, quantity, and unit (kg, gram, or g)
     final addRegex = RegExp(
-        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*kg",
+        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*(kg|gram|g)", // Still the correct regex
         caseSensitive: false);
     final totalRegex = RegExp(r"total", caseSensitive: false);
 
@@ -48,25 +47,32 @@ class ShoppingController extends GetxController {
     final match = addRegex.firstMatch(command);
     if (match != null) {
       String productName = match.group(1)?.trim() ?? '';
-      String productQuantityKg = match.group(2)?.trim() ?? '0';
+      String productQuantity = match.group(2)?.trim() ?? '0';
+      String productUnit = match.group(3)?.trim() ?? ''; // Capture the unit
 
-      debugPrint('Regex matched! Product Name: "${productName}" Quantity: "${productQuantityKg}"');
+      // IMPORTANT DEBUG PRINTS: Check raw group values and trimmed variables
+      debugPrint('Raw group 1 (productName): "${match.group(1)}"');
+      debugPrint('Raw group 2 (productQuantity): "${match.group(2)}"');
+      debugPrint('Raw group 3 (productUnit): "${match.group(3)}"');
+      debugPrint('Trimmed productName var: "${productName}"');
+      debugPrint('Trimmed productQuantity var: "${productQuantity}"');
+      debugPrint('Trimmed productUnit var: "${productUnit}"'); // This is the crucial one
 
       // Basic validation for extracted data
-      if (productName.isNotEmpty && productQuantityKg != '0') {
+      if (productName.isNotEmpty && productQuantity != '0' && productUnit.isNotEmpty) {
         shoppingList.add(ShoppingItem(
-          name: productName.capitalize!, // Using GetX's .capitalize
-          quantity: '$productQuantityKg kg',
+          name: productName.capitalize!,
+          quantity: '$productQuantity $productUnit', // Use the captured unit
         ));
         Get.snackbar(
           "Item Added",
-          "${productName.capitalize!} ($productQuantityKg kg) added to list.", // Using GetX's .capitalize
+          "${productName.capitalize!} ($productQuantity $productUnit) added to list.",
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
       } else {
-        debugPrint('Validation failed: productName empty or productQuantityKg is "0"');
+        debugPrint('Validation failed: productName empty, productQuantity is "0", or productUnit is empty');
         _showInvalidCommandSnackbar();
       }
     } else {
@@ -93,7 +99,7 @@ class ShoppingController extends GetxController {
   void _showInvalidCommandSnackbar() {
     Get.snackbar(
       "Invalid Command",
-      "Please say '[item name] [quantity] kg' (e.g., 'onion 1 kg')",
+      "Please say '[item name] [quantity] [unit]' (e.g., 'onion 1 kg' or 'rice 500 gram')",
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Get.theme.colorScheme.error,
       colorText: Get.theme.colorScheme.onError,
@@ -101,14 +107,10 @@ class ShoppingController extends GetxController {
   }
 }
 
-// REMOVED: Your custom StringExtension is removed to avoid ambiguity.
-// If you need custom string extensions in the future, consider renaming them
-// or using extension overrides explicitly.
-/*
+// Extension to capitalize first letter (for better display)
 extension StringExtension on String {
   String capitalizeFirst() {
     if (isEmpty) return '';
     return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
-*/
