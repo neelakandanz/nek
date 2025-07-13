@@ -13,26 +13,48 @@ class ShoppingListPage extends StatefulWidget {
 }
 
 class _ShoppingListPageState extends State<ShoppingListPage> {
-  // Find or put the controller instance
   final ShoppingController shoppingController = Get.put(ShoppingController());
   final SpeechToText _speechToText = SpeechToText();
   bool _speechEnabled = false;
   String _lastWords = '';
 
+  // 1. Declare a ScrollController
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     _initSpeech();
+    // 2. Add a listener to the shoppingList to trigger scroll when items are added
+    // This is more robust than scrolling directly after addItem call
+    shoppingController.shoppingList.listen((_) {
+      // Ensure the UI has a chance to rebuild before trying to scroll
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // 3. Dispose the ScrollController when the widget is removed
+    _scrollController.dispose();
+    super.dispose();
   }
 
   /// This initializes the speech recognition.
   void _initSpeech() async {
-    // Check if speech recognition is available and initialize it
     _speechEnabled = await _speechToText.initialize(
       onStatus: (status) => debugPrint('Speech status: $status'),
       onError: (error) => debugPrint('Speech error: $error'),
     );
-    setState(() {}); // Update the UI to reflect if speech is enabled
+    setState(() {});
   }
 
   /// Starts a speech recognition session.
@@ -40,9 +62,9 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
     if (_speechEnabled) {
       await _speechToText.listen(
         onResult: _onSpeechResult,
-        localeId: Get.deviceLocale?.languageCode ?? 'en_US', // Use device locale or default to English
+        localeId: Get.deviceLocale?.languageCode ?? 'en_US',
       );
-      setState(() {}); // Update UI to show listening state
+      setState(() {});
     } else {
       Get.snackbar(
         "Speech Not Enabled",
@@ -57,7 +79,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
   /// Stops the active speech recognition session.
   void _stopListening() async {
     await _speechToText.stop();
-    setState(() {}); // Update UI to show not listening state
+    setState(() {});
   }
 
   /// Callback when speech recognition results are available.
@@ -66,10 +88,10 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
       _lastWords = result.recognizedWords;
     });
     if (result.finalResult) {
-      // When the final result is received, add the item to the list
-      shoppingController.addItem(_lastWords.toLowerCase()); // Convert to lowercase for consistent parsing
-      _lastWords = ''; // Clear temporary words
-      setState(() {}); // Update UI to clear displayed words
+      shoppingController.addItem(_lastWords.toLowerCase());
+      _lastWords = '';
+      setState(() {});
+      // The scrolling logic is now handled by the listener in initState
     }
   }
 
@@ -84,7 +106,6 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
       body: Column(
         children: [
           Expanded(
-            // Obx rebuilds its content whenever shoppingController.shoppingList changes
             child: Obx(
               () => shoppingController.shoppingList.isEmpty
                   ? Center(
@@ -95,6 +116,8 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                       ),
                     )
                   : ListView.builder(
+                      // 4. Assign the ScrollController to the ListView.builder
+                      controller: _scrollController,
                       itemCount: shoppingController.shoppingList.length,
                       itemBuilder: (context, index) {
                         final item = shoppingController.shoppingList[index];
@@ -105,7 +128,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             title: Text(
-                              item.name, // Capitalize the first letter of the item name
+                              item.name,
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                             ),
                             subtitle: Text(
@@ -126,7 +149,6 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                     ),
             ),
           ),
-          // Display recognized words and microphone button
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -162,7 +184,6 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
   }
 }
 
-// Extension to capitalize first letter (for better display)
 extension StringExtension on String {
     String capitalizeFirst() {
       if (isEmpty) return '';
