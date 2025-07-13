@@ -27,9 +27,10 @@ class ShoppingController extends GetxController {
       debugPrint('FAILURE: "10 kg" NOT found in command.');
     }
 
-    // Corrected Regex to capture product name, quantity, and unit (kg, gram, or g)
+    // Corrected Regex to capture product name, quantity, and unit
+    // Now includes 'litre', 'liter', 'litres', 'liters', and 'l'
     final addRegex = RegExp(
-        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*(kg|gram|g)", // Still the correct regex
+        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*(kg|gram|g|litre|liter|litres|liters|l)", // <--- CHANGED THIS LINE
         caseSensitive: false);
     final totalRegex = RegExp(r"total", caseSensitive: false);
 
@@ -50,13 +51,12 @@ class ShoppingController extends GetxController {
       String productQuantity = match.group(2)?.trim() ?? '0';
       String productUnit = match.group(3)?.trim() ?? ''; // Capture the unit
 
-      // IMPORTANT DEBUG PRINTS: Check raw group values and trimmed variables
       debugPrint('Raw group 1 (productName): "${match.group(1)}"');
       debugPrint('Raw group 2 (productQuantity): "${match.group(2)}"');
       debugPrint('Raw group 3 (productUnit): "${match.group(3)}"');
       debugPrint('Trimmed productName var: "${productName}"');
       debugPrint('Trimmed productQuantity var: "${productQuantity}"');
-      debugPrint('Trimmed productUnit var: "${productUnit}"'); // This is the crucial one
+      debugPrint('Trimmed productUnit var: "${productUnit}"');
 
       // Basic validation for extracted data
       if (productName.isNotEmpty && productQuantity != '0' && productUnit.isNotEmpty) {
@@ -99,7 +99,7 @@ class ShoppingController extends GetxController {
   void _showInvalidCommandSnackbar() {
     Get.snackbar(
       "Invalid Command",
-      "Please say '[item name] [quantity] [unit]' (e.g., 'onion 1 kg' or 'rice 500 gram')",
+      "Please say '[item name] [quantity] [unit]' (e.g., 'onion 1 kg' or 'water 2 litres')",
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Get.theme.colorScheme.error,
       colorText: Get.theme.colorScheme.onError,
