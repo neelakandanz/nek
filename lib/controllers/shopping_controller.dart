@@ -15,11 +15,11 @@ class ShoppingController extends GetxController {
   var shoppingList = <ShoppingItem>[].obs;
 
   /// Adds a new item to the shopping list based on a voice command.
-  /// The command is expected to be in the format "product [name] [quantity] kg".
+  /// The command is expected to be in the format "[name] [quantity] kg".
   void addItem(String command) {
-    // Regex to capture product name and quantity in kg, without price
+    // Regex to capture product name and quantity in kg, without the "product" prefix
     final addRegex = RegExp(
-        r"product\s+([a-zA-Z0-9\s]+)[,]?\s*(\d+)\s*kg",
+        r"([a-zA-Z0-9\s]+)[,]?\s*(\d+)\s*kg",
         caseSensitive: false);
     final totalRegex = RegExp(r"total", caseSensitive: false);
 
@@ -78,7 +78,7 @@ class ShoppingController extends GetxController {
   void _showInvalidCommandSnackbar() {
     Get.snackbar(
       "Invalid Command",
-      "Please say 'product [name] [quantity] kg' (e.g., 'product onion 1 kg')",
+      "Please say '[item name] [quantity] kg' (e.g., 'onion 1 kg')",
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Get.theme.colorScheme.error,
       colorText: Get.theme.colorScheme.onError,
