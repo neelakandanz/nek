@@ -1,36 +1,33 @@
 // lib/controllers/shopping_controller.dart
-import 'package:get/get.dart';
-import 'package:flutter/material.dart'; // Import for Colors and Theme
+import 'package:flutter/material.dart';
+import 'package:get/get.dart'; // This import provides GetX's string extensions
+import 'package:objectbox/objectbox.dart';
+import '../objectbox.dart';
+import '../models/shopping_item.dart';
 
-// Item Model
-class ShoppingItem {
-  final String name;
-  final String quantity;
-
-  ShoppingItem({required this.name, required this.quantity});
-}
 
 // GetX Controller for State Management
 class ShoppingController extends GetxController {
+  late final Box<ShoppingItem> _shoppingItemBox;
   var shoppingList = <ShoppingItem>[].obs;
 
-  /// Adds a new item to the shopping list based on a voice command.
-  /// The command is expected to be in the format "[name] [quantity] kg".
+  @override
+  void onInit() {
+    super.onInit();
+    _shoppingItemBox = objectbox.box<ShoppingItem>();
+    _loadShoppingList();
+  }
+
+  void _loadShoppingList() {
+    shoppingList.assignAll(_shoppingItemBox.getAll());
+    debugPrint('Loaded ${shoppingList.length} items from ObjectBox.');
+  }
+
   void addItem(String command) {
     debugPrint('Command received by addItem: "$command"');
 
-    // TEMPORARY: Test a simpler regex (you can remove this after confirming the fix)
-    final testRegex = RegExp(r"10 kg", caseSensitive: false);
-    if (testRegex.hasMatch(command)) {
-      debugPrint('SUCCESS: "10 kg" found in command!');
-    } else {
-      debugPrint('FAILURE: "10 kg" NOT found in command.');
-    }
-
-    // Corrected Regex to capture product name, quantity, and unit
-    // Now includes 'litre', 'liter', 'litres', 'liters', and 'l'
     final addRegex = RegExp(
-        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*(kg|gram|g|litre|liter|litres|liters|l)", // <--- CHANGED THIS LINE
+        r"(.+?)[,]?\s*(\d+(?:\.\d+)?)\s*(kg|gram|g|litre|liter|litres|liters|l)",
         caseSensitive: false);
     final totalRegex = RegExp(r"total", caseSensitive: false);
 
@@ -49,7 +46,7 @@ class ShoppingController extends GetxController {
     if (match != null) {
       String productName = match.group(1)?.trim() ?? '';
       String productQuantity = match.group(2)?.trim() ?? '0';
-      String productUnit = match.group(3)?.trim() ?? ''; // Capture the unit
+      String productUnit = match.group(3)?.trim() ?? '';
 
       debugPrint('Raw group 1 (productName): "${match.group(1)}"');
       debugPrint('Raw group 2 (productQuantity): "${match.group(2)}"');
@@ -58,15 +55,17 @@ class ShoppingController extends GetxController {
       debugPrint('Trimmed productQuantity var: "${productQuantity}"');
       debugPrint('Trimmed productUnit var: "${productUnit}"');
 
-      // Basic validation for extracted data
       if (productName.isNotEmpty && productQuantity != '0' && productUnit.isNotEmpty) {
-        shoppingList.add(ShoppingItem(
-          name: productName.capitalize!,
-          quantity: '$productQuantity $productUnit', // Use the captured unit
-        ));
+        final newItem = ShoppingItem(
+          name: productName.capitalize!, // Use GetX's capitalize!
+          quantity: '$productQuantity $productUnit',
+        );
+        _shoppingItemBox.put(newItem);
+        _loadShoppingList();
+
         Get.snackbar(
           "Item Added",
-          "${productName.capitalize!} ($productQuantity $productUnit) added to list.",
+          "${productName.capitalize!} ($productQuantity $productUnit) added to list.", // Use GetX's capitalize!
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
@@ -81,11 +80,14 @@ class ShoppingController extends GetxController {
     }
   }
 
-  /// Removes an item from the shopping list at the specified index.
   void removeItem(int index) {
     if (index >= 0 && index < shoppingList.length) {
-      final removedItemName = shoppingList[index].name;
-      shoppingList.removeAt(index);
+      final itemToRemove = shoppingList[index];
+      final removedItemName = itemToRemove.name;
+
+      _shoppingItemBox.remove(itemToRemove.id);
+      _loadShoppingList();
+
       Get.snackbar(
         "Item Removed",
         "$removedItemName removed from list.",
@@ -107,10 +109,10 @@ class ShoppingController extends GetxController {
   }
 }
 
-// Extension to capitalize first letter (for better display)
-extension StringExtension on String {
-  String capitalizeFirst() {
-    if (isEmpty) return '';
-    return "${this[0].toUpperCase()}${substring(1)}";
-  }
-}
+// REMOVE THE ENTIRE EXTENSION BLOCK BELOW THIS LINE
+// extension StringExtension on String {
+//   String capitalizeFirst() {
+//     if (isEmpty) return '';
+//     return "${this[0].toUpperCase()}${substring(1)}";
+//   }
+// }

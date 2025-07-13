@@ -1,28 +1,32 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nek/screens/shopping_list_page.dart'; // Import your screen
+import 'package:nek/screens/shopping_list_page.dart';
+import 'package:nek/objectbox.dart'; // Import your ObjectBox initialization file
 
-void main() {
+void main() async {
+  // Ensure Flutter widgets are initialized before accessing native code for paths
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeObjectBox(); // Initialize ObjectBox
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp( // Use GetMaterialApp for GetX features
+    return GetMaterialApp(
       title: 'Voice Shopping List',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
         appBarTheme: const AppBarTheme(
-          elevation: 4, // Add a subtle shadow to the app bar
+          elevation: 4,
         ),
       ),
-      home: const ShoppingListPage(), // Your main screen
+      home: const ShoppingListPage(),
     );
   }
 }

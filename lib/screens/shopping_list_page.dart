@@ -95,6 +95,13 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
     }
   }
 
+  // New method to add a test item manually
+  void _addTestItemManually() {
+    // You can customize the item name and quantity for testing
+    shoppingController.addItem('Oeange 1 kg'); // Example test item
+    // You can add more test items here if needed, or make this interactive
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,16 +171,31 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
-                FloatingActionButton(
-                  onPressed: _speechToText.isNotListening ? _startListening : _stopListening,
-                  tooltip: _speechToText.isNotListening ? 'Start Listening' : 'Stop Listening',
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  elevation: 6,
-                  child: Icon(
-                    _speechToText.isNotListening ? Icons.mic : Icons.mic_off,
-                    size: 36,
-                  ),
+                Row( // Use a Row to place buttons side-by-side
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Distribute buttons
+                  children: [
+                    FloatingActionButton(
+                      onPressed: _addTestItemManually, // New button for manual test
+                      tooltip: 'Add Test Item',
+                      backgroundColor: Theme.of(context).colorScheme.secondary, // Different color for distinction
+                      foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                      elevation: 6,
+                      heroTag: 'addTest', // Unique heroTag if multiple FABs
+                      child: const Icon(Icons.add, size: 36),
+                    ),
+                    FloatingActionButton(
+                      onPressed: _speechToText.isNotListening ? _startListening : _stopListening,
+                      tooltip: _speechToText.isNotListening ? 'Start Listening' : 'Stop Listening',
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      elevation: 6,
+                      heroTag: 'mic', // Unique heroTag
+                      child: Icon(
+                        _speechToText.isNotListening ? Icons.mic : Icons.mic_off,
+                        size: 36,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -184,6 +206,8 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
   }
 }
 
+// Ensure this extension is removed or handled if it causes ambiguity
+// as discussed in previous turns with GetX's capitalize!
 extension StringExtension on String {
     String capitalizeFirst() {
       if (isEmpty) return '';
