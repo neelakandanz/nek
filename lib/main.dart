@@ -1,6 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:nek/screens/dashboard_screen.dart';
 import 'package:nek/screens/shopping_list_page.dart';
 import 'package:nek/objectbox.dart'; // Import your ObjectBox initialization file
 
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
           elevation: 4,
         ),
       ),
-      home: const ShoppingListPage(),
+      home: const DashboardScreen(),
     );
   }
 }
